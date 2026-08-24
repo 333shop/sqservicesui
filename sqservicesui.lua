@@ -1,7 +1,7 @@
 --[[
     sqservices.me UI Library
     Clean • Modern • Dark Blue
-    Version 2.0
+    Version 2.1
 ]]
 
 local TweenService = game:GetService("TweenService")
@@ -142,6 +142,7 @@ function Library:CreateWindow(config)
     Window.TabContainer = TabContainer
     Window.ScreenGui = ScreenGui
 
+    -- Dragging
     local Dragging, DragStart, StartPos = false, nil, nil
 
     TopBar.InputBegan:Connect(function(input)
@@ -170,7 +171,7 @@ function Library:CreateWindow(config)
         end
     end)
 
-    print("[sqservices.me] UI Library loaded")
+    print("[sqservices.me] UI Library loaded (v2.1)")
     return Window
 end
 
@@ -256,6 +257,158 @@ function Library:CreateTab(name)
 
     if #self.Tabs == 1 then
         self:SelectTab(Tab)
+    end
+
+    -- Mini Button
+    function Tab:CreateButton(options)
+        options = options or {}
+        local name = options.Name or "Button"
+        local callback = options.Callback or function() end
+
+        local Btn = Instance.new("TextButton")
+        Btn.Name = name
+        Btn.Size = UDim2.new(0, 140, 0, 32)
+        Btn.BackgroundColor3 = Color3.fromRGB(35, 70, 150)
+        Btn.BorderSizePixel = 0
+        Btn.AutoButtonColor = false
+        Btn.Font = Enum.Font.GothamMedium
+        Btn.TextSize = 13
+        Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Btn.Text = name
+        Btn.Parent = self.Container
+
+        local Corner = Instance.new("UICorner")
+        Corner.CornerRadius = UDim.new(0, 7)
+        Corner.Parent = Btn
+
+        local Stroke = Instance.new("UIStroke")
+        Stroke.Color = Color3.fromRGB(60, 110, 210)
+        Stroke.Thickness = 1
+        Stroke.Transparency = 0.4
+        Stroke.Parent = Btn
+
+        Btn.MouseEnter:Connect(function()
+            TweenService:Create(Btn, TweenInfo.new(0.15), {
+                BackgroundColor3 = Color3.fromRGB(50, 95, 190)
+            }):Play()
+        end)
+
+        Btn.MouseLeave:Connect(function()
+            TweenService:Create(Btn, TweenInfo.new(0.15), {
+                BackgroundColor3 = Color3.fromRGB(35, 70, 150)
+            }):Play()
+        end)
+
+        Btn.MouseButton1Click:Connect(function()
+            callback()
+        end)
+
+        return Btn
+    end
+
+    -- Smooth Slider
+    function Tab:CreateSlider(options)
+        options = options or {}
+        local name = options.Name or "Slider"
+        local min = options.Min or 0
+        local max = options.Max or 100
+        local default = options.Default or min
+        local callback = options.Callback or function() end
+
+        local value = math.clamp(default, min, max)
+
+        local Holder = Instance.new("Frame")
+        Holder.Name = name
+        Holder.Size = UDim2.new(1, 0, 0, 48)
+        Holder.BackgroundTransparency = 1
+        Holder.Parent = self.Container
+
+        local Label = Instance.new("TextLabel")
+        Label.Size = UDim2.new(1, 0, 0, 18)
+        Label.BackgroundTransparency = 1
+        Label.Text = name .. "  •  " .. tostring(value)
+        Label.Font = Enum.Font.Gotham
+        Label.TextSize = 13
+        Label.TextColor3 = Color3.fromRGB(180, 200, 240)
+        Label.TextXAlignment = Enum.TextXAlignment.Left
+        Label.Parent = Holder
+
+        local Track = Instance.new("Frame")
+        Track.Name = "Track"
+        Track.Size = UDim2.new(1, 0, 0, 6)
+        Track.Position = UDim2.new(0, 0, 0, 28)
+        Track.BackgroundColor3 = Color3.fromRGB(25, 35, 60)
+        Track.BorderSizePixel = 0
+        Track.Parent = Holder
+
+        local TrackCorner = Instance.new("UICorner")
+        TrackCorner.CornerRadius = UDim.new(1, 0)
+        TrackCorner.Parent = Track
+
+        local Fill = Instance.new("Frame")
+        Fill.Name = "Fill"
+        Fill.Size = UDim2.new((value - min) / (max - min), 0, 1, 0)
+        Fill.BackgroundColor3 = Color3.fromRGB(55, 120, 230)
+        Fill.BorderSizePixel = 0
+        Fill.Parent = Track
+
+        local FillCorner = Instance.new("UICorner")
+        FillCorner.CornerRadius = UDim.new(1, 0)
+        FillCorner.Parent = Fill
+
+        local Knob = Instance.new("Frame")
+        Knob.Name = "Knob"
+        Knob.Size = UDim2.new(0, 14, 0, 14)
+        Knob.Position = UDim2.new((value - min) / (max - min), -7, 0.5, -7)
+        Knob.BackgroundColor3 = Color3.fromRGB(220, 230, 255)
+        Knob.BorderSizePixel = 0
+        Knob.ZIndex = 2
+        Knob.Parent = Track
+
+        local KnobCorner = Instance.new("UICorner")
+        KnobCorner.CornerRadius = UDim.new(1, 0)
+        KnobCorner.Parent = Knob
+
+        local Dragging = false
+
+        local function update(input)
+            local relative = math.clamp((input.Position.X - Track.AbsolutePosition.X) / Track.AbsoluteSize.X, 0, 1)
+            value = math.floor(min + (max - min) * relative + 0.5)
+
+            local percent = (value - min) / (max - min)
+
+            TweenService:Create(Fill, TweenInfo.new(0.08), {
+                Size = UDim2.new(percent, 0, 1, 0)
+            }):Play()
+
+            TweenService:Create(Knob, TweenInfo.new(0.08), {
+                Position = UDim2.new(percent, -7, 0.5, -7)
+            }):Play()
+
+            Label.Text = name .. "  •  " .. tostring(value)
+            callback(value)
+        end
+
+        Track.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                Dragging = true
+                update(input)
+            end
+        end)
+
+        Track.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                Dragging = false
+            end
+        end)
+
+        UserInputService.InputChanged:Connect(function(input)
+            if Dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                update(input)
+            end
+        end)
+
+        return Holder
     end
 
     return Tab
