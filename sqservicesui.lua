@@ -1,7 +1,7 @@
 --[[
     sqservices.me UI Library
     Clean • Modern • Dark Blue
-    Version 2.2
+    Version 2.3
 ]]
 
 local TweenService = game:GetService("TweenService")
@@ -21,7 +21,7 @@ local Defaults = {
     SubTextColor = Color3.fromRGB(140, 155, 190),
     SidebarWidth = 130,
     CornerRadius = UDim.new(0, 10),
-    BackgroundImage = nil, -- "rbxassetid://..." or image URL
+    BackgroundImage = nil,
 }
 
 function Library:CreateWindow(config)
@@ -41,6 +41,9 @@ function Library:CreateWindow(config)
     ScreenGui.Name = "sqservicesUI"
     ScreenGui.ResetOnSpawn = false
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    ScreenGui.DisplayOrder = 999
+    ScreenGui.IgnoreGuiInset = true
+    ScreenGui.Enabled = true
     ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
     local Main = Instance.new("Frame")
@@ -48,8 +51,10 @@ function Library:CreateWindow(config)
     Main.Size = config.Size
     Main.Position = UDim2.new(0.5, -config.Size.X.Offset / 2, 0.5, -config.Size.Y.Offset / 2)
     Main.BackgroundColor3 = config.BackgroundColor
+    Main.BackgroundTransparency = 0
     Main.BorderSizePixel = 0
     Main.ClipsDescendants = true
+    Main.Visible = true
     Main.Parent = ScreenGui
 
     local MainCorner = Instance.new("UICorner")
@@ -62,7 +67,6 @@ function Library:CreateWindow(config)
     MainStroke.Transparency = 0.4
     MainStroke.Parent = Main
 
-    -- Optional background image
     if config.BackgroundImage and config.BackgroundImage ~= "" then
         local BgImage = Instance.new("ImageLabel")
         BgImage.Name = "BackgroundImage"
@@ -83,6 +87,7 @@ function Library:CreateWindow(config)
     TopBar.Name = "TopBar"
     TopBar.Size = UDim2.new(1, 0, 0, 42)
     TopBar.BackgroundTransparency = 1
+    TopBar.Active = true
     TopBar.ZIndex = 2
     TopBar.Parent = Main
 
@@ -162,7 +167,7 @@ function Library:CreateWindow(config)
     Window.TabContainer = TabContainer
     Window.ScreenGui = ScreenGui
 
-    -- Dragging (mouse + touch)
+    -- Dragging
     local Dragging, DragStart, StartPos = false, nil, nil
 
     TopBar.InputBegan:Connect(function(input)
@@ -191,7 +196,7 @@ function Library:CreateWindow(config)
         end
     end)
 
-    print("[sqservices.me] UI Library loaded (v2.2)")
+    print("[sqservices.me] UI Library loaded (v2.3)")
     return Window
 end
 
@@ -279,7 +284,7 @@ function Library:CreateTab(name)
         self:SelectTab(Tab)
     end
 
-    -- ===== Button =====
+    -- Soft Button
     function Tab:CreateButton(options)
         options = options or {}
         local name = options.Name or "Button"
@@ -326,7 +331,7 @@ function Library:CreateTab(name)
         return Btn
     end
 
-    -- ===== Toggle Switch =====
+    -- Toggle Switch
     function Tab:CreateToggle(options)
         options = options or {}
         local name = options.Name or "Toggle"
@@ -356,6 +361,7 @@ function Library:CreateTab(name)
         Track.Position = UDim2.new(1, -42, 0.5, -11)
         Track.BackgroundColor3 = state and Color3.fromRGB(45, 100, 200) or Color3.fromRGB(35, 48, 78)
         Track.BorderSizePixel = 0
+        Track.Active = true
         Track.Parent = Holder
 
         local TrackCorner = Instance.new("UICorner")
@@ -394,7 +400,7 @@ function Library:CreateTab(name)
         return Holder
     end
 
-    -- ===== Checkbox =====
+    -- Checkbox
     function Tab:CreateCheckbox(options)
         options = options or {}
         local name = options.Name or "Checkbox"
@@ -414,6 +420,7 @@ function Library:CreateTab(name)
         Box.Position = UDim2.new(0, 0, 0.5, -10)
         Box.BackgroundColor3 = state and Color3.fromRGB(45, 100, 200) or Color3.fromRGB(28, 40, 68)
         Box.BorderSizePixel = 0
+        Box.Active = true
         Box.Parent = Holder
 
         local BoxCorner = Instance.new("UICorner")
@@ -464,7 +471,7 @@ function Library:CreateTab(name)
         return Holder
     end
 
-    -- ===== SmoothSlider =====
+    -- Slider (mobile + PC)
     function Tab:CreateSlider(options)
         options = options or {}
         local name = options.Name or "Slider"
@@ -497,6 +504,7 @@ function Library:CreateTab(name)
         Track.Position = UDim2.new(0, 0, 0, 28)
         Track.BackgroundColor3 = Color3.fromRGB(28, 40, 68)
         Track.BorderSizePixel = 0
+        Track.Active = true
         Track.Parent = Holder
 
         local TrackCorner = Instance.new("UICorner")
@@ -521,6 +529,7 @@ function Library:CreateTab(name)
         Knob.BackgroundColor3 = Color3.fromRGB(230, 238, 255)
         Knob.BorderSizePixel = 0
         Knob.ZIndex = 2
+        Knob.Active = true
         Knob.Parent = Track
 
         local KnobCorner = Instance.new("UICorner")
@@ -530,7 +539,7 @@ function Library:CreateTab(name)
         local Dragging = false
 
         local function update(input)
-            local relative = math.clamp((input.Position.X - Track.AbsolutePosition.X) / Track.AbsoluteSize.X, 0, 1)
+            local relative = math.clamp((input.Position.X - Track.AbsolutePosition.X) / math.max(Track.AbsoluteSize.X, 1), 0, 1)
             value = math.floor(min + (max - min) * relative + 0.5)
 
             local percent = (value - min) / (max - min)
@@ -547,17 +556,10 @@ function Library:CreateTab(name)
             callback(value)
         end
 
-        -- Mouse + Touch support
         Track.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                 Dragging = true
                 update(input)
-            end
-        end)
-
-        Track.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                Dragging = false
             end
         end)
 
