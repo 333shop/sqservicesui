@@ -1,12 +1,13 @@
 --[[
     sqservices.me UI Library
-    Clean • Modern • Dark • Blended
-    Version 3.0  (Hide/Show + Smooth Tabs + Blended Background)
+    Clean • Modern • Transparent • Blended
+    Version 3.1  (Transparent + Smooth Tabs + Time/IP Bottom Bar)
 ]]
 
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
 
 local Library = {}
@@ -14,8 +15,8 @@ Library.__index = Library
 
 local Defaults = {
     Title = "sqservices.me",
-    Size = UDim2.new(0, 520, 0, 360),
-    BackgroundColor = Color3.fromRGB(11, 14, 28),
+    Size = UDim2.new(0, 520, 0, 400),
+    BackgroundColor = Color3.fromRGB(10, 13, 26),
     AccentColor = Color3.fromRGB(55, 115, 220),
     TextColor = Color3.fromRGB(225, 235, 255),
     SubTextColor = Color3.fromRGB(145, 160, 195),
@@ -27,7 +28,7 @@ local Defaults = {
 local function Tween(obj, props, time, style, dir)
     style = style or Enum.EasingStyle.Quint
     dir = dir or Enum.EasingDirection.Out
-    local t = TweenService:Create(obj, TweenInfo.new(time or 0.25, style, dir), props)
+    local t = TweenService:Create(obj, TweenInfo.new(time or 0.28, style, dir), props)
     t:Play()
     return t
 end
@@ -55,13 +56,13 @@ function Library:CreateWindow(config)
     ScreenGui.Enabled = true
     ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
-    -- Main Frame (blended dark)
+    -- Main Frame (more transparent)
     local Main = Instance.new("Frame")
     Main.Name = "Main"
     Main.Size = config.Size
     Main.Position = UDim2.new(0.5, -config.Size.X.Offset / 2, 0.5, -config.Size.Y.Offset / 2)
     Main.BackgroundColor3 = config.BackgroundColor
-    Main.BackgroundTransparency = 0
+    Main.BackgroundTransparency = 0.18          -- ← more transparent
     Main.BorderSizePixel = 0
     Main.ClipsDescendants = true
     Main.Visible = true
@@ -72,17 +73,17 @@ function Library:CreateWindow(config)
     MainCorner.Parent = Main
 
     local MainStroke = Instance.new("UIStroke")
-    MainStroke.Color = Color3.fromRGB(35, 55, 100)
-    MainStroke.Thickness = 1.2
-    MainStroke.Transparency = 0.55
+    MainStroke.Color = Color3.fromRGB(40, 65, 120)
+    MainStroke.Thickness = 1.3
+    MainStroke.Transparency = 0.45
     MainStroke.Parent = Main
 
-    -- Soft inner glow / blend layer
+    -- Soft blend layer
     local BlendLayer = Instance.new("Frame")
     BlendLayer.Name = "BlendLayer"
     BlendLayer.Size = UDim2.new(1, 0, 1, 0)
-    BlendLayer.BackgroundColor3 = Color3.fromRGB(18, 28, 55)
-    BlendLayer.BackgroundTransparency = 0.85
+    BlendLayer.BackgroundColor3 = Color3.fromRGB(16, 24, 48)
+    BlendLayer.BackgroundTransparency = 0.72
     BlendLayer.BorderSizePixel = 0
     BlendLayer.ZIndex = 0
     BlendLayer.Parent = Main
@@ -98,7 +99,7 @@ function Library:CreateWindow(config)
         BgImage.BackgroundTransparency = 1
         BgImage.Image = config.BackgroundImage
         BgImage.ScaleType = Enum.ScaleType.Crop
-        BgImage.ImageTransparency = 0.72
+        BgImage.ImageTransparency = 0.78
         BgImage.ZIndex = 0
         BgImage.Parent = Main
 
@@ -134,7 +135,7 @@ function Library:CreateWindow(config)
     MinimizeBtn.Size = UDim2.new(0, 32, 0, 28)
     MinimizeBtn.Position = UDim2.new(1, -42, 0.5, -14)
     MinimizeBtn.BackgroundColor3 = Color3.fromRGB(30, 42, 70)
-    MinimizeBtn.BackgroundTransparency = 0.4
+    MinimizeBtn.BackgroundTransparency = 0.35
     MinimizeBtn.BorderSizePixel = 0
     MinimizeBtn.AutoButtonColor = false
     MinimizeBtn.Font = Enum.Font.GothamBold
@@ -151,15 +152,15 @@ function Library:CreateWindow(config)
     local TopDivider = Instance.new("Frame")
     TopDivider.Size = UDim2.new(1, -24, 0, 1)
     TopDivider.Position = UDim2.new(0, 12, 1, -1)
-    TopDivider.BackgroundColor3 = Color3.fromRGB(40, 60, 105)
-    TopDivider.BackgroundTransparency = 0.45
+    TopDivider.BackgroundColor3 = Color3.fromRGB(45, 70, 120)
+    TopDivider.BackgroundTransparency = 0.5
     TopDivider.BorderSizePixel = 0
     TopDivider.Parent = TopBar
 
     -- Content area
     local Content = Instance.new("Frame")
     Content.Name = "Content"
-    Content.Size = UDim2.new(1, 0, 1, -42)
+    Content.Size = UDim2.new(1, 0, 1, -78)          -- leave space for bottom bar
     Content.Position = UDim2.new(0, 0, 0, 42)
     Content.BackgroundTransparency = 1
     Content.ZIndex = 2
@@ -188,8 +189,8 @@ function Library:CreateWindow(config)
     SideDivider.Name = "SideDivider"
     SideDivider.Size = UDim2.new(0, 1, 1, -16)
     SideDivider.Position = UDim2.new(0, config.SidebarWidth, 0, 8)
-    SideDivider.BackgroundColor3 = Color3.fromRGB(50, 75, 130)
-    SideDivider.BackgroundTransparency = 0.6
+    SideDivider.BackgroundColor3 = Color3.fromRGB(50, 80, 140)
+    SideDivider.BackgroundTransparency = 0.55
     SideDivider.BorderSizePixel = 0
     SideDivider.ZIndex = 2
     SideDivider.Parent = Content
@@ -222,19 +223,101 @@ function Library:CreateWindow(config)
     TabContainer.ClipsDescendants = true
     TabContainer.Parent = RightPanel
 
+    -- ========== BOTTOM BAR (Time + IP) ==========
+    local BottomBar = Instance.new("Frame")
+    BottomBar.Name = "BottomBar"
+    BottomBar.Size = UDim2.new(1, 0, 0, 36)
+    BottomBar.Position = UDim2.new(0, 0, 1, -36)
+    BottomBar.BackgroundColor3 = Color3.fromRGB(8, 11, 22)
+    BottomBar.BackgroundTransparency = 0.35
+    BottomBar.BorderSizePixel = 0
+    BottomBar.ZIndex = 4
+    BottomBar.Parent = Main
+
+    local BottomCorner = Instance.new("UICorner")
+    BottomCorner.CornerRadius = UDim.new(0, 12)
+    BottomCorner.Parent = BottomBar
+
+    -- Fix corner only at bottom
+    local BottomFix = Instance.new("Frame")
+    BottomFix.Size = UDim2.new(1, 0, 0, 12)
+    BottomFix.Position = UDim2.new(0, 0, 0, 0)
+    BottomFix.BackgroundColor3 = Color3.fromRGB(8, 11, 22)
+    BottomFix.BackgroundTransparency = 0.35
+    BottomFix.BorderSizePixel = 0
+    BottomFix.ZIndex = 4
+    BottomFix.Parent = BottomBar
+
+    local BottomDivider = Instance.new("Frame")
+    BottomDivider.Size = UDim2.new(1, -20, 0, 1)
+    BottomDivider.Position = UDim2.new(0, 10, 0, 0)
+    BottomDivider.BackgroundColor3 = Color3.fromRGB(45, 70, 120)
+    BottomDivider.BackgroundTransparency = 0.55
+    BottomDivider.BorderSizePixel = 0
+    BottomDivider.ZIndex = 5
+    BottomDivider.Parent = BottomBar
+
+    local TimeLabel = Instance.new("TextLabel")
+    TimeLabel.Name = "TimeLabel"
+    TimeLabel.Size = UDim2.new(0.5, -10, 1, 0)
+    TimeLabel.Position = UDim2.new(0, 14, 0, 0)
+    TimeLabel.BackgroundTransparency = 1
+    TimeLabel.Text = "Time: --:--:--"
+    TimeLabel.Font = Enum.Font.Gotham
+    TimeLabel.TextSize = 12
+    TimeLabel.TextColor3 = Color3.fromRGB(160, 180, 220)
+    TimeLabel.TextXAlignment = Enum.TextXAlignment.Left
+    TimeLabel.ZIndex = 5
+    TimeLabel.Parent = BottomBar
+
+    local IPLabel = Instance.new("TextLabel")
+    IPLabel.Name = "IPLabel"
+    IPLabel.Size = UDim2.new(0.5, -10, 1, 0)
+    IPLabel.Position = UDim2.new(0.5, 0, 0, 0)
+    IPLabel.BackgroundTransparency = 1
+    IPLabel.Text = "IP: Loading..."
+    IPLabel.Font = Enum.Font.Gotham
+    IPLabel.TextSize = 12
+    IPLabel.TextColor3 = Color3.fromRGB(160, 180, 220)
+    IPLabel.TextXAlignment = Enum.TextXAlignment.Right
+    IPLabel.ZIndex = 5
+    IPLabel.Parent = BottomBar
+
+    -- Live Time updater
+    task.spawn(function()
+        while Main and Main.Parent do
+            local t = os.date("*t")
+            TimeLabel.Text = string.format("Time: %02d:%02d:%02d", t.hour, t.min, t.sec)
+            task.wait(1)
+        end
+    end)
+
+    -- Get IP (safe)
+    task.spawn(function()
+        local success, result = pcall(function()
+            return game:HttpGet("https://api.ipify.org")
+        end)
+        if success and result then
+            IPLabel.Text = "IP: " .. result
+        else
+            IPLabel.Text = "IP: Unknown"
+        end
+    end)
+
     Window.Main = Main
     Window.Sidebar = Sidebar
     Window.TabTitle = TabTitle
     Window.TabContainer = TabContainer
     Window.ScreenGui = ScreenGui
+    Window.BottomBar = BottomBar
 
     -- ========== FLOATING REOPEN BUTTON ==========
     local OpenBtn = Instance.new("TextButton")
     OpenBtn.Name = "OpenUI"
     OpenBtn.Size = UDim2.new(0, 46, 0, 46)
     OpenBtn.Position = UDim2.new(1, -68, 1, -68)
-    OpenBtn.BackgroundColor3 = Color3.fromRGB(18, 26, 48)
-    OpenBtn.BackgroundTransparency = 0.15
+    OpenBtn.BackgroundColor3 = Color3.fromRGB(16, 24, 48)
+    OpenBtn.BackgroundTransparency = 0.2
     OpenBtn.BorderSizePixel = 0
     OpenBtn.AutoButtonColor = false
     OpenBtn.Font = Enum.Font.GothamBold
@@ -255,14 +338,14 @@ function Library:CreateWindow(config)
     OpenStroke.Transparency = 0.35
     OpenStroke.Parent = OpenBtn
 
-    -- Hide / Show logic
+    -- Hide / Show
     local function HideUI()
         if Window.IsHidden then return end
         Window.IsHidden = true
 
         Tween(Main, {
-            Size = UDim2.new(0, config.Size.X.Offset * 0.92, 0, config.Size.Y.Offset * 0.92),
-            BackgroundTransparency = 0.4
+            Size = UDim2.new(0, config.Size.X.Offset * 0.9, 0, config.Size.Y.Offset * 0.9),
+            BackgroundTransparency = 0.55
         }, 0.22)
 
         task.delay(0.12, function()
@@ -271,7 +354,7 @@ function Library:CreateWindow(config)
             OpenBtn.BackgroundTransparency = 1
             OpenBtn.TextTransparency = 1
             Tween(OpenBtn, {
-                BackgroundTransparency = 0.15,
+                BackgroundTransparency = 0.2,
                 TextTransparency = 0
             }, 0.2)
         end)
@@ -283,20 +366,20 @@ function Library:CreateWindow(config)
 
         OpenBtn.Visible = false
         Main.Visible = true
-        Main.BackgroundTransparency = 0.4
-        Main.Size = UDim2.new(0, config.Size.X.Offset * 0.92, 0, config.Size.Y.Offset * 0.92)
+        Main.BackgroundTransparency = 0.55
+        Main.Size = UDim2.new(0, config.Size.X.Offset * 0.9, 0, config.Size.Y.Offset * 0.9)
 
         Tween(Main, {
             Size = config.Size,
-            BackgroundTransparency = 0
-        }, 0.28, Enum.EasingStyle.Back)
+            BackgroundTransparency = 0.18
+        }, 0.3, Enum.EasingStyle.Back)
     end
 
     MinimizeBtn.MouseEnter:Connect(function()
         Tween(MinimizeBtn, {BackgroundTransparency = 0.1}, 0.15)
     end)
     MinimizeBtn.MouseLeave:Connect(function()
-        Tween(MinimizeBtn, {BackgroundTransparency = 0.4}, 0.15)
+        Tween(MinimizeBtn, {BackgroundTransparency = 0.35}, 0.15)
     end)
     MinimizeBtn.MouseButton1Click:Connect(HideUI)
 
@@ -304,19 +387,15 @@ function Library:CreateWindow(config)
         Tween(OpenBtn, {BackgroundColor3 = Color3.fromRGB(28, 42, 78)}, 0.15)
     end)
     OpenBtn.MouseLeave:Connect(function()
-        Tween(OpenBtn, {BackgroundColor3 = Color3.fromRGB(18, 26, 48)}, 0.15)
+        Tween(OpenBtn, {BackgroundColor3 = Color3.fromRGB(16, 24, 48)}, 0.15)
     end)
     OpenBtn.MouseButton1Click:Connect(ShowUI)
 
-    -- RightShift to toggle
+    -- RightShift toggle
     UserInputService.InputBegan:Connect(function(input, gp)
         if gp then return end
         if input.KeyCode == Enum.KeyCode.RightShift then
-            if Window.IsHidden then
-                ShowUI()
-            else
-                HideUI()
-            end
+            if Window.IsHidden then ShowUI() else HideUI() end
         end
     end)
 
@@ -349,7 +428,15 @@ function Library:CreateWindow(config)
         end
     end)
 
-    print("[sqservices.me] UI Library loaded (v3.0) — Blended + Smooth Hide/Show")
+    -- Smooth open animation when UI first loads
+    Main.BackgroundTransparency = 1
+    Main.Size = UDim2.new(0, config.Size.X.Offset * 0.85, 0, config.Size.Y.Offset * 0.85)
+    Tween(Main, {
+        Size = config.Size,
+        BackgroundTransparency = 0.18
+    }, 0.4, Enum.EasingStyle.Back)
+
+    print("[sqservices.me] UI Library loaded (v3.1) — Transparent + Time/IP")
     return Window
 end
 
@@ -413,7 +500,7 @@ function Library:CreateTab(name)
     Button.MouseEnter:Connect(function()
         if self.CurrentTab ~= Tab then
             Tween(Button, {
-                BackgroundTransparency = 0.55,
+                BackgroundTransparency = 0.5,
                 TextColor3 = self.Config.TextColor
             }, 0.18)
         end
@@ -448,6 +535,7 @@ function Library:CreateTab(name)
         Btn.Name = name
         Btn.Size = UDim2.new(0, 132, 0, 30)
         Btn.BackgroundColor3 = Color3.fromRGB(28, 42, 72)
+        Btn.BackgroundTransparency = 0.25
         Btn.BorderSizePixel = 0
         Btn.AutoButtonColor = false
         Btn.Font = Enum.Font.GothamMedium
@@ -463,14 +551,14 @@ function Library:CreateTab(name)
         local Stroke = Instance.new("UIStroke")
         Stroke.Color = Color3.fromRGB(48, 75, 130)
         Stroke.Thickness = 1
-        Stroke.Transparency = 0.55
+        Stroke.Transparency = 0.5
         Stroke.Parent = Btn
 
         Btn.MouseEnter:Connect(function()
-            Tween(Btn, {BackgroundColor3 = Color3.fromRGB(38, 58, 100)}, 0.15)
+            Tween(Btn, {BackgroundTransparency = 0.05}, 0.15)
         end)
         Btn.MouseLeave:Connect(function()
-            Tween(Btn, {BackgroundColor3 = Color3.fromRGB(28, 42, 72)}, 0.15)
+            Tween(Btn, {BackgroundTransparency = 0.25}, 0.15)
         end)
         Btn.MouseButton1Click:Connect(callback)
 
@@ -506,6 +594,7 @@ function Library:CreateTab(name)
         Track.Size = UDim2.new(0, 42, 0, 22)
         Track.Position = UDim2.new(1, -42, 0.5, -11)
         Track.BackgroundColor3 = state and Color3.fromRGB(48, 110, 210) or Color3.fromRGB(32, 44, 72)
+        Track.BackgroundTransparency = 0.15
         Track.BorderSizePixel = 0
         Track.Active = true
         Track.Parent = Holder
@@ -565,6 +654,7 @@ function Library:CreateTab(name)
         Box.Size = UDim2.new(0, 20, 0, 20)
         Box.Position = UDim2.new(0, 0, 0.5, -10)
         Box.BackgroundColor3 = state and Color3.fromRGB(48, 110, 210) or Color3.fromRGB(26, 38, 66)
+        Box.BackgroundTransparency = 0.15
         Box.BorderSizePixel = 0
         Box.Active = true
         Box.Parent = Holder
@@ -576,7 +666,7 @@ function Library:CreateTab(name)
         local BoxStroke = Instance.new("UIStroke")
         BoxStroke.Color = Color3.fromRGB(55, 85, 145)
         BoxStroke.Thickness = 1
-        BoxStroke.Transparency = 0.5
+        BoxStroke.Transparency = 0.45
         BoxStroke.Parent = Box
 
         local Check = Instance.new("TextLabel")
@@ -648,6 +738,7 @@ function Library:CreateTab(name)
         Track.Size = UDim2.new(1, 0, 0, 6)
         Track.Position = UDim2.new(0, 0, 0, 28)
         Track.BackgroundColor3 = Color3.fromRGB(28, 40, 68)
+        Track.BackgroundTransparency = 0.2
         Track.BorderSizePixel = 0
         Track.Active = true
         Track.Parent = Holder
@@ -727,6 +818,7 @@ function Library:CreateTab(name)
     return Tab
 end
 
+-- Smooth simultaneous tab switch
 function Library:SelectTab(tab)
     if self.CurrentTab == tab then return end
 
@@ -736,11 +828,15 @@ function Library:SelectTab(tab)
         Tween(oldTab.Button, {
             BackgroundTransparency = 1,
             TextColor3 = self.Config.SubTextColor
-        }, 0.2)
+        }, 0.22)
 
-        -- Smooth fade out
+        -- Fade out old content
         oldTab.Container.Visible = true
-        Tween(oldTab.Container, {BackgroundTransparency = 1}, 0.15)
+        for _, child in ipairs(oldTab.Container:GetChildren()) do
+            if child:IsA("GuiObject") then
+                Tween(child, {BackgroundTransparency = 1}, 0.15)
+            end
+        end
         task.delay(0.12, function()
             if oldTab.Container then
                 oldTab.Container.Visible = false
@@ -751,19 +847,27 @@ function Library:SelectTab(tab)
     self.CurrentTab = tab
     self.TabTitle.Text = tab.Name
 
+    -- Show new tab at the same time
     tab.Container.Visible = true
     tab.Container.BackgroundTransparency = 1
 
-    -- Smooth fade in
-    Tween(tab.Container, {BackgroundTransparency = 1}, 0.01) -- keep transparent
+    -- Fade in new content
+    for _, child in ipairs(tab.Container:GetChildren()) do
+        if child:IsA("GuiObject") and child.BackgroundTransparency then
+            local original = child.BackgroundTransparency
+            child.BackgroundTransparency = 1
+            Tween(child, {BackgroundTransparency = original}, 0.25)
+        end
+    end
+
     Tween(tab.Button, {
-        BackgroundTransparency = 0.35,
+        BackgroundTransparency = 0.3,
         TextColor3 = self.Config.TextColor
-    }, 0.22)
+    }, 0.25)
 end
 
 -------------------------------------------------
--- KEY SYSTEM (kept + slightly polished)
+-- KEY SYSTEM
 -------------------------------------------------
 function Library:CreateKeySystem(options)
     options = options or {}
@@ -793,6 +897,7 @@ function Library:CreateKeySystem(options)
     Box.Size = UDim2.new(0, 350, 0, 220)
     Box.Position = UDim2.new(0.5, -175, 0.5, -110)
     Box.BackgroundColor3 = Color3.fromRGB(12, 16, 32)
+    Box.BackgroundTransparency = 0.12
     Box.BorderSizePixel = 0
     Box.Parent = Overlay
 
@@ -833,6 +938,7 @@ function Library:CreateKeySystem(options)
     TextBox.Size = UDim2.new(1, -28, 0, 38)
     TextBox.Position = UDim2.new(0, 14, 0, 76)
     TextBox.BackgroundColor3 = Color3.fromRGB(20, 28, 52)
+    TextBox.BackgroundTransparency = 0.2
     TextBox.BorderSizePixel = 0
     TextBox.PlaceholderText = "Enter key here..."
     TextBox.PlaceholderColor3 = Color3.fromRGB(105, 120, 155)
@@ -890,6 +996,7 @@ function Library:CreateKeySystem(options)
     GetKey.Name = "GetKey"
     GetKey.Size = UDim2.new(0, 148, 0, 36)
     GetKey.BackgroundColor3 = Color3.fromRGB(28, 40, 68)
+    GetKey.BackgroundTransparency = 0.2
     GetKey.BorderSizePixel = 0
     GetKey.AutoButtonColor = false
     GetKey.Font = Enum.Font.GothamMedium
@@ -916,10 +1023,10 @@ function Library:CreateKeySystem(options)
     end)
 
     GetKey.MouseEnter:Connect(function()
-        Tween(GetKey, {BackgroundColor3 = Color3.fromRGB(38, 55, 95)}, 0.15)
+        Tween(GetKey, {BackgroundTransparency = 0.05}, 0.15)
     end)
     GetKey.MouseLeave:Connect(function()
-        Tween(GetKey, {BackgroundColor3 = Color3.fromRGB(28, 40, 68)}, 0.15)
+        Tween(GetKey, {BackgroundTransparency = 0.2}, 0.15)
     end)
 
     GetKey.MouseButton1Click:Connect(function()
