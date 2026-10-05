@@ -98,7 +98,7 @@ local function ElementColor(theme)
     return Mix(Mix(theme.Background, theme.Accent, 0.22), WHITE, 0.04)
 end
 
--- Local-only: fetches YOUR public IP so you can see it in the bar. Never sent anywhere.
+-- Local-only: fetches YOUR public IP so you can see it in the bar.
 local function FetchIP()
     local attempts = {
         function() return game:HttpGet("https://api.ipify.org") end,
@@ -219,7 +219,7 @@ function Library:CreateWindow(config)
         IgnoreGuiInset = true,
     }, LocalPlayer:WaitForChild("PlayerGui"))
 
-    -- Root moves/hides as one unit (holds Main + the optional ESP preview panel)
+    -- Root moves/hides as one unit 
     local Root = Create("Frame", {
         Name = "Root",
         Size = config.Size,
