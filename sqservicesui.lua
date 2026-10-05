@@ -1,13 +1,6 @@
 --[[
     sqservices.me UI Library
     Version 4.0
-    - Transparent glass look (sidebar + content panel, matches the Crosshair screenshot)
-    - "S" logo next to the title, title shows "sqservices.me • <current tab>"
-    - Info pill in the top bar: time + your IP (click it to hide the IP)
-    - Same hide button (–), floating reopen button (☰) and RightShift toggle
-    - Fully re-colorable at runtime: Window:SetAccent / SetBackground / SetTransparency
-    - Tab:CreateColorPicker + Window:AddThemeTab() for in-UI color changing
-    - ESP Preview panel with a 3D character model (ViewportFrame) like the video
 ]]
 
 local TweenService = game:GetService("TweenService")
